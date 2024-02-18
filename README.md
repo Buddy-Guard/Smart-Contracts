@@ -1,15 +1,10 @@
-# Basic Sample Hardhat Project
+# Buddy-Guard Smart Contract
 
-This project demonstrates a basic Hardhat use case. It comes with a sample contract, a test for that contract, a sample script that deploys that contract, and an example of a task implementation, which simply lists the available accounts.
+Original Smart Contract on Fuji
+https://testnet.snowtrace.io/address/0x4EeFA835A807c36DD0a643A7D97cD6E2b8Ca29c2#code
 
-Try running some of the following tasks:
+Chainlink-ccip supported contract on Fuji
+https://testnet.snowtrace.io/address/0xFFE869232eb6FfF96bf804f91f62D90071478c7e#code
 
-```shell
-npx hardhat accounts
-npx hardhat compile
-npx hardhat clean
-npx hardhat test
-npx hardhat node
-node scripts/sample-script.js
-npx hardhat help
-```
+Chainlink-ccip source chain contract on sepolia
+https://sepolia.etherscan.io/address/0x7CF30F68804F15A2745356a7375202162224e336
