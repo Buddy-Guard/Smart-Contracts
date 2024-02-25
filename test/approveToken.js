@@ -4,10 +4,10 @@ const { ethers } = require("hardhat");
 
 async function main() {
   // Address of the ERC20 token contract
-  const tokenAddress = "0xFBb8Ee011Af0F15eE171E79C0688d05a58f7f566";
+  const tokenAddress = "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d";
   
   // Address to be authorized
-  const spenderAddress = "0x42f034CD03E06087870cF0D662EA6dB389E3364f";
+  const spenderAddress = "0xB84388635B926A800F4626F91aad15F23783637E";
   
   // Amount of tokens to authorize
   const amount = ethers.utils.parseUnits("2000000", "6"); 
