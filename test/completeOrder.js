@@ -4,7 +4,7 @@ const { ethers } = require("hardhat");
 
 async function main() {
   // The address of the deployed buddyGuard contract
-  const contractAddress = "0x4EeFA835A807c36DD0a643A7D97cD6E2b8Ca29c2";
+  const contractAddress = "0x42f034CD03E06087870cF0D662EA6dB389E3364f";
 
   // The ID of the order to complete
   const orderId = 3; // Example order ID, replace with actual order ID

@@ -3,10 +3,10 @@ const { ethers } = require("hardhat");
 
 async function main() {
   // Your contract's details
-  const contractAddress = "0x4EeFA835A807c36DD0a643A7D97cD6E2b8Ca29c2";
-  const tokenAddress = "0xD21341536c5cF5EB1bcb58f6723cE26e8D8E90e4"; // ERC20 token used for payment
+  const contractAddress = "0x42f034CD03E06087870cF0D662EA6dB389E3364f";
+  const tokenAddress = "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d"; // ERC20 token used for payment
   const guardians = ["0xE1e5E0b3830454d68aE7B8926540a8AC0FdcabC0"]; // Guardian addresses
-  const payment = ethers.utils.parseUnits("75", "1"); // Payment amount in tokens
+  const payment = ethers.utils.parseUnits("2", "6"); // Payment amount in tokens
 
   // Check for PRIVATE_KEY in the environment variables
   if (!process.env.PRIVATE_KEY_User) {
@@ -28,12 +28,6 @@ async function main() {
 
   console.log(`Creating order with payment: ${payment.toString()} tokens...`);
   
-  // Approve the BuddyGuard contract to spend tokens on behalf of the user
-  const tokenAbi = [
-    "function approve(address spender, uint256 amount) external returns (bool)",
-  ];
-  const tokenContract = new ethers.Contract(tokenAddress, tokenAbi, wallet);
-  await tokenContract.approve(contractAddress, payment);
 
   // Create the order
   const tx = await buddyGuardContract.createOrder(tokenAddress, guardians, payment);

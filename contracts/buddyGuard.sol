@@ -50,11 +50,11 @@ contract buddyGuard is Ownable, ReentrancyGuard {
         emit PlatformFeeUpdated(_newFee);
     }
 
-    function setGuardianPricing(address _guardian, uint256 _price) external {
-        require(msg.sender == _guardian, "Not authorized");
-        guardianPricing[_guardian] = _price;
-        emit GuardianPricingUpdated(_guardian, _price);
+    function setGuardianPricing(uint256 _price) external {
+        guardianPricing[msg.sender] = _price;
+        emit GuardianPricingUpdated(msg.sender, _price);
     }
+
 
     function setGuardiansPricing(address[] calldata _guardians, uint256[] calldata _prices) external onlyOwner {
         require(_guardians.length == _prices.length, "Guardians and prices length mismatch");

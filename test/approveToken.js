@@ -4,13 +4,13 @@ const { ethers } = require("hardhat");
 
 async function main() {
   // Address of the ERC20 token contract
-  const tokenAddress = "0xD21341536c5cF5EB1bcb58f6723cE26e8D8E90e4";
+  const tokenAddress = "0xFBb8Ee011Af0F15eE171E79C0688d05a58f7f566";
   
   // Address to be authorized
-  const spenderAddress = "0x4EeFA835A807c36DD0a643A7D97cD6E2b8Ca29c2";
+  const spenderAddress = "0x42f034CD03E06087870cF0D662EA6dB389E3364f";
   
   // Amount of tokens to authorize
-  const amount = ethers.utils.parseUnits("200", "ether"); // Assuming the token has 18 decimals, authorize 100 tokens
+  const amount = ethers.utils.parseUnits("2000000", "6"); 
 
   // Connect using the private key from the .env file
   const privateKey = process.env.PRIVATE_KEY_User;
@@ -34,7 +34,7 @@ async function main() {
   const tokenContract = new ethers.Contract(tokenAddress, tokenABI, signer);
 
   // Call the `approve` function
-  console.log(`Approving ${spenderAddress} to spend ${ethers.utils.formatUnits(amount, "ether")} tokens.`);
+  console.log(`Approving ${spenderAddress} to spend ${ethers.utils.formatUnits(amount, "6")} tokens.`);
   const tx = await tokenContract.approve(spenderAddress, amount);
 
   // Wait for the transaction to be confirmed
