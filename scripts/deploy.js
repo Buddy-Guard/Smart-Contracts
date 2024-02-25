@@ -2,13 +2,13 @@ const hre = require("hardhat");
 
 async function main() {
    
-    const easAddress = "0xaEF4103A04090071165F78D45D83A0C0782c2B2a"; 
+    const tokenAddress = "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d"; 
 
    
     const BuddyGuard = await hre.ethers.getContractFactory("buddyGuard");
 
     
-    const buddyGuard = await BuddyGuard.deploy();
+    const buddyGuard = await BuddyGuard.deploy(tokenAddress);
 
    
     await buddyGuard.deployed();
