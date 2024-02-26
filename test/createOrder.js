@@ -3,7 +3,7 @@ const { ethers } = require("hardhat");
 
 async function main() {
   // Your contract's details
-  const contractAddress = "0x42f034CD03E06087870cF0D662EA6dB389E3364f";
+  const contractAddress = "0x93172bb4339A8E3c444e1D542b2E4d0042CF3b32";
   const guardians = ["0xE1e5E0b3830454d68aE7B8926540a8AC0FdcabC0"]; // Guardian addresses
 
   // Check for PRIVATE_KEY in the environment variables
