@@ -3,7 +3,7 @@ const { ethers } = require("hardhat");
 
 async function main() {
   // Use a general environment variable name for the private key
-  const privateKey = process.env.PRIVATE_KEY_Guardian;
+  const privateKey = process.env.PRIVATE_KEY_Particle;
   
   if (!privateKey) {
     throw new Error("Please set the PRIVATE_KEY environment variable.");
@@ -16,7 +16,7 @@ async function main() {
   const contractAddress = "0x42f034CD03E06087870cF0D662EA6dB389E3364f";
 
   // New pricing
-  const newPrice = ethers.utils.parseUnits("1.2", "6"); 
+  const newPrice = ethers.utils.parseUnits("0.5", "6"); 
 
   // ABI of the BuddyGuard contract
   const buddyGuardABI = [

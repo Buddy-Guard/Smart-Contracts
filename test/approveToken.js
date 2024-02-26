@@ -7,7 +7,7 @@ async function main() {
   const tokenAddress = "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d";
   
   // Address to be authorized
-  const spenderAddress = "0xB84388635B926A800F4626F91aad15F23783637E";
+  const spenderAddress = "0x42f034CD03E06087870cF0D662EA6dB389E3364f";
   
   // Amount of tokens to authorize
   const amount = ethers.utils.parseUnits("2000000", "6"); 

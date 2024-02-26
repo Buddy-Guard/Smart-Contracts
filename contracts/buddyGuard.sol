@@ -65,123 +65,67 @@ contract buddyGuard is Ownable, ReentrancyGuard {
         }
     }
 
-    // Create an order with initial guardians
-    function createOrder(address[] calldata _guardians, uint256 _payment) external {
-        uint256 totalPrice = calculateTotalPrice(_guardians);
-        require(_payment >= totalPrice, "Insufficient payment");
-
-        require(paymentToken.transferFrom(msg.sender, address(this), _payment), "Payment transfer failed");
-
-        if (_payment > totalPrice) {
-            require(paymentToken.transfer(msg.sender, _payment - totalPrice), "Refund failed");
-        }
-
-        Order storage order = orders[orderCount];
-        order.creator = msg.sender;
-        order.creationTime = block.timestamp;
-        order.isActive = true;
-        order.totalPayment = totalPrice;
-
-        for (uint256 i = 0; i < _guardians.length; i++) {
-            order.guardians.push(_guardians[i]);
-            guardianPayments[orderCount][_guardians[i]] = guardianPricing[_guardians[i]];
-            emit GuardianAdded(orderCount, _guardians[i], guardianPricing[_guardians[i]]);
-        }
-
-        emit OrderCreated(orderCount, msg.sender, totalPrice);
-        orderCount++;
-    }
-
     function createOrderWithPermit(
         address[] calldata _guardians,
-        uint256 _payment,
         uint256 _deadline,
         uint8 _v,
         bytes32 _r,
         bytes32 _s
-    ) external {
-        uint256 totalPrice = calculateTotalPrice(_guardians);
-        require(_payment >= totalPrice, "Insufficient payment");
-
+    ) external nonReentrant {
         // Permit logic to approve tokens for this contract
         IERC20Permit(address(paymentToken)).permit(
             msg.sender,
             address(this),
-            _payment,
+            calculateTotalPrice(_guardians),
             _deadline,
             _v,
             _r,
             _s
         );
 
-        // Transfer tokens to this contract
-        require(paymentToken.transferFrom(msg.sender, address(this), _payment), "Payment failed");
-
-        if (_payment > totalPrice) {
-            require(paymentToken.transfer(msg.sender, _payment - totalPrice), "Refund failed");
-        }
-
-        // Create order
-        Order storage order = orders[orderCount];
-        order.creator = msg.sender;
-        order.creationTime = block.timestamp;
-        order.isActive = true;
-        order.totalPayment = totalPrice;
-
-        for (uint256 i = 0; i < _guardians.length; i++) {
-            order.guardians.push(_guardians[i]);
-            guardianPayments[orderCount][_guardians[i]] = guardianPricing[_guardians[i]];
-            emit GuardianAdded(orderCount, _guardians[i], guardianPricing[_guardians[i]]);
-        }
-
-        emit OrderCreated(orderCount, msg.sender, totalPrice);
-        orderCount++;
+        // Directly call createOrder
+        createOrder(_guardians);
     }
 
-    // External function to change guardians with ERC20 token payment
-    function changeGuardians(uint256 _orderId, address[] calldata _guardiansToRemove, address[] calldata _guardiansToAdd, uint256 _payment) external {
+    // External function to change guardians
+    function changeGuardians(
+        uint256 _orderId, 
+        address[] calldata _guardiansToAdd, 
+        address[] calldata _guardiansToRemove
+    ) external nonReentrant {
         require(orders[_orderId].creator == msg.sender, "Only order creator can change guardians");
         require(orders[_orderId].isActive, "Order is not active");
 
-        // First, check if there's enough payment for adding guardians
-        uint256 totalPaymentRequired = 0;
-        for (uint256 i = 0; i < _guardiansToAdd.length; i++) {
-            totalPaymentRequired += guardianPricing[_guardiansToAdd[i]];
+        uint256 totalPrice = calculateTotalPrice(_guardiansToAdd);
+        uint256 totalRefund = calculateTotalPrice(_guardiansToRemove);
+
+        // Transfer tokens to this contract
+        if (totalPrice > totalRefund) {
+            require(paymentToken.transferFrom(msg.sender, address(this), totalPrice - totalRefund), "Payment transfer failed");
+        } else if (totalRefund > totalPrice) {
+            require(paymentToken.transfer(msg.sender, totalRefund - totalPrice), "Refund transfer failed");
         }
 
-        require(_payment >= totalPaymentRequired, "Insufficient payment for adding guardians");
-        
-        // Transfer required payment from caller to contract for the new guardians
-        if (totalPaymentRequired > 0) {
-            require(paymentToken.transferFrom(msg.sender, address(this), totalPaymentRequired), "Payment transfer failed");
+        // Add guardians
+        for (uint256 i = 0; i < _guardiansToAdd.length; i++) {
+            _addGuardian(_orderId, _guardiansToAdd[i]);
         }
 
         // Remove guardians
         for (uint256 i = 0; i < _guardiansToRemove.length; i++) {
             _removeGuardian(_orderId, _guardiansToRemove[i]);
         }
-
-        // Add guardians
-        for (uint256 i = 0; i < _guardiansToAdd.length; i++) {
-            _addGuardian(_orderId, _guardiansToAdd[i], guardianPricing[_guardiansToAdd[i]]);
-        }
-
-        // Refund any excess payment
-        if (_payment > totalPaymentRequired) {
-            uint256 excessPayment = _payment - totalPaymentRequired;
-            require(paymentToken.transfer(msg.sender, excessPayment), "Refund failed");
-        }
     }
 
     // Complete an order and distribute tokens
-    function completeOrder(uint256 _orderId) external {
+    function completeOrder(uint256 _orderId) external nonReentrant {
         require(orders[_orderId].creator == msg.sender, "Only order creator can complete order");
         distributePayments(_orderId);
         emit OrderCompleted(_orderId);
     }
 
     // Trigger expired order and distribute tokens
-    function trigExpiredOrder(uint256 _orderId) external {
+    function trigExpiredOrder(uint256 _orderId) external nonReentrant {
         Order storage order = orders[_orderId];
         require(isGuardian(order, msg.sender), "Only assigned guardian can trigger");
         require(block.timestamp > order.creationTime + 48 hours, "Order duration not yet expired");
@@ -199,16 +143,43 @@ contract buddyGuard is Ownable, ReentrancyGuard {
         require(paymentToken.transfer(owner(), _amount), "Withdrawal failed");
     }
 
+    // Create an order with initial guardians
+    function createOrder(address[] memory _guardians) public nonReentrant {
+        uint256 totalPrice = calculateTotalPrice(_guardians);
+
+        // Transfer tokens to this contract
+        if (totalPrice > 0) {
+            require(paymentToken.transferFrom(msg.sender, address(this), totalPrice), "Payment transfer failed");
+        }
+
+        Order storage order = orders[orderCount];
+        order.creator = msg.sender;
+        order.creationTime = block.timestamp;
+        order.isActive = true;
+        order.totalPayment = totalPrice;
+
+        for (uint256 i = 0; i < _guardians.length; i++) {
+            order.guardians.push(_guardians[i]);
+            guardianPayments[orderCount][_guardians[i]] = guardianPricing[_guardians[i]];
+            emit GuardianAdded(orderCount, _guardians[i], guardianPricing[_guardians[i]]);
+        }
+
+        emit OrderCreated(orderCount, msg.sender, totalPrice);
+        orderCount++;
+    }
+
     // Internal function to add a guardian with specific payment
-    function _addGuardian(uint256 _orderId, address _guardian, uint256 _payment) internal {
+    function _addGuardian(uint256 _orderId, address _guardian) internal {
         Order storage order = orders[_orderId];
+
         // Ensure the guardian is not already added
         for (uint256 i = 0; i < order.guardians.length; i++) {
             require(order.guardians[i] != _guardian, "Guardian already added");
         }
+
         order.guardians.push(_guardian);
-        guardianPayments[_orderId][_guardian] = _payment;
-        emit GuardianAdded(_orderId, _guardian, _payment);
+        guardianPayments[_orderId][_guardian] = guardianPricing[_guardian];
+        emit GuardianAdded(_orderId, _guardian, guardianPricing[_guardian]);
     }
 
     // Internal function to remove a guardian from an order
@@ -218,6 +189,7 @@ contract buddyGuard is Ownable, ReentrancyGuard {
 
         for (uint256 i = 0; i < order.guardians.length; i++) {
             if (order.guardians[i] == _guardian) {
+                //swapping with the last array element and then popping
                 order.guardians[i] = order.guardians[order.guardians.length - 1];
                 order.guardians.pop();
                 found = true;
@@ -226,12 +198,6 @@ contract buddyGuard is Ownable, ReentrancyGuard {
         }
 
         require(found, "Guardian not found");
-        uint256 guardianPayment = guardianPayments[_orderId][_guardian];
-        if (guardianPayment > 0) {
-            paymentToken.transfer(msg.sender, guardianPayment); 
-            // Reset the guardian payment
-            guardianPayments[_orderId][_guardian] = 0;
-        }
         emit GuardianRemoved(_orderId, _guardian);
     }
 
@@ -254,6 +220,18 @@ contract buddyGuard is Ownable, ReentrancyGuard {
         }
 
         order.isActive = false;
+    }
+
+    // Retrieve the details of an order by its ID
+    function getOrderDetails(uint256 _orderId) external view returns (address, address[] memory, uint256, bool, uint256) {
+        Order storage order = orders[_orderId];
+        return (
+            order.creator,
+            order.guardians,
+            order.creationTime,
+            order.isActive,
+            order.totalPayment
+        );
     }
 
     function calculateTotalPrice(address[] memory _guardians) public view returns (uint256 totalPrice) {
