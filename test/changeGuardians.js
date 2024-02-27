@@ -6,7 +6,7 @@ async function changeGuardians() {
   const userPrivateKey = process.env.PRIVATE_KEY_User; 
   const userWallet = new ethers.Wallet(userPrivateKey, provider);
 
-  const buddyGuardAddress = "0x93172bb4339A8E3c444e1D542b2E4d0042CF3b32"; 
+  const buddyGuardAddress = process.env.BuddyGuard_Address; 
 
   const BuddyGuardABI = [
     "function changeGuardians(uint256 _orderId, address[] calldata _guardiansToAdd, address[] calldata _guardiansToRemove) external",

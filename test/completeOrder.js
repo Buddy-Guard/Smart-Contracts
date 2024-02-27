@@ -4,10 +4,10 @@ const { ethers } = require("hardhat");
 
 async function main() {
   // The address of the deployed buddyGuard contract
-  const contractAddress = "0x93172bb4339a8e3c444e1d542b2e4d0042cf3b32";
+  const contractAddress = process.env.BuddyGuard_Address;
 
   // The ID of the order to complete
-  const orderId = 3; // Example order ID, replace with actual order ID
+  const orderId = 1; // Example order ID, replace with actual order ID
 
   // Connect using the private key from the .env file
   const privateKey = process.env.PRIVATE_KEY_User;

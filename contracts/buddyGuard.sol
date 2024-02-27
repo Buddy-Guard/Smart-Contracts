@@ -9,6 +9,7 @@ import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 contract buddyGuard is Ownable, ReentrancyGuard {
     IERC20 public paymentToken;
 
+    uint256 public expirationDuration;
     mapping(address => uint256) public guardianPricing;
     mapping(uint256 => mapping(address => uint256)) public guardianPayments; // Records payments to guardians
     uint256 public platformFee = 500; // 5% fee, in basis points, least support amount for USDC/USDT will be 10e4 / 10e6 = 0.01
@@ -33,9 +34,10 @@ contract buddyGuard is Ownable, ReentrancyGuard {
     event OrderExpired(uint256 indexed orderId, address indexed guardian);
     event PaymentDistributed(uint256 indexed orderId, address indexed guardian, uint256 amount);
 
-    constructor(address _paymentToken) {
+    constructor(address _paymentToken, uint256 _initialExpirationDuration) {
         require(_paymentToken != address(0), "Invalid token address");
         paymentToken = IERC20(_paymentToken);
+        expirationDuration = _initialExpirationDuration; // Set the initial expiration duration
     }
 
     function setPaymentToken(address _newPaymentToken) external onlyOwner {
@@ -48,6 +50,11 @@ contract buddyGuard is Ownable, ReentrancyGuard {
         require(_newFee <= 10000, "Fee too high");
         platformFee = _newFee;
         emit PlatformFeeUpdated(_newFee);
+    }
+
+    // Add a function to update the expiration duration
+    function setExpirationDuration(uint256 _newDuration) external onlyOwner {
+        expirationDuration = _newDuration;
     }
 
     function setGuardianPricing(uint256 _price) external {
@@ -71,7 +78,7 @@ contract buddyGuard is Ownable, ReentrancyGuard {
         uint8 _v,
         bytes32 _r,
         bytes32 _s
-    ) external nonReentrant {
+    ) external {
         // Permit logic to approve tokens for this contract
         IERC20Permit(address(paymentToken)).permit(
             msg.sender,
@@ -120,6 +127,7 @@ contract buddyGuard is Ownable, ReentrancyGuard {
     // Complete an order and distribute tokens
     function completeOrder(uint256 _orderId) external nonReentrant {
         require(orders[_orderId].creator == msg.sender, "Only order creator can complete order");
+
         distributePayments(_orderId);
         emit OrderCompleted(_orderId);
     }
@@ -128,8 +136,7 @@ contract buddyGuard is Ownable, ReentrancyGuard {
     function trigExpiredOrder(uint256 _orderId) external nonReentrant {
         Order storage order = orders[_orderId];
         require(isGuardian(order, msg.sender), "Only assigned guardian can trigger");
-        require(block.timestamp > order.creationTime + 48 hours, "Order duration not yet expired");
-        require(order.isActive, "Order is already completed or cancelled");
+        require(block.timestamp > orders[_orderId].creationTime + expirationDuration, "Order duration not yet expired");
 
         distributePayments(_orderId);
         emit OrderExpired(_orderId, msg.sender);
@@ -201,10 +208,10 @@ contract buddyGuard is Ownable, ReentrancyGuard {
         emit GuardianRemoved(_orderId, _guardian);
     }
 
-
     // Distribute payments to guardians and platform, adjusting payments proportionally
     function distributePayments(uint256 _orderId) private {
         Order storage order = orders[_orderId];
+        require(order.isActive, "Order is already completed or cancelled");
         uint256 guardiansLength = order.guardians.length;
 
         // Distribute payments to guardians proportionally

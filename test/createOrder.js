@@ -3,7 +3,7 @@ const { ethers } = require("hardhat");
 
 async function main() {
   // Your contract's details
-  const contractAddress = "0x93172bb4339A8E3c444e1D542b2E4d0042CF3b32";
+  const contractAddress = process.env.BuddyGuard_Address;
   const guardians = ["0xE1e5E0b3830454d68aE7B8926540a8AC0FdcabC0"]; // Guardian addresses
 
   // Check for PRIVATE_KEY in the environment variables
@@ -18,7 +18,7 @@ async function main() {
   
   // ABI for the createOrder function of the BuddyGuard contract
   const buddyGuardAbi = [
-    "function createOrder(address[] memory _guardians) external",
+    "function createOrder(address[] memory _guardians) public",
   ];
 
   // Instantiate the BuddyGuard contract

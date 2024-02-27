@@ -13,7 +13,7 @@ async function main() {
   const wallet = new ethers.Wallet(privateKey, ethers.provider);
   
   // Address of the BuddyGuard contract
-  const contractAddress = "0x93172bb4339A8E3c444e1D542b2E4d0042CF3b32";
+  const contractAddress = process.env.BuddyGuard_Address;
 
   // New pricing
   const newPrice = ethers.utils.parseUnits("0.5", "6"); 
