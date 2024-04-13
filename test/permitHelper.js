@@ -12,7 +12,7 @@ const usdcAbi = [
 // USDC contract address
 const usdcAddress = "0x75faf114eafb1BDbe2F0316DF893fd58CE46AA4d";
 
-async function getPermitSignatureData(signer, owner, spender, value, deadline, provider) {
+async function getPermitSignatureData(signer, owner, spender, value, deadline) {
     console.log("Signer address:", signer.address);
     console.log("Owner:", owner);
     console.log("Spender:", spender);
@@ -26,8 +26,8 @@ async function getPermitSignatureData(signer, owner, spender, value, deadline, p
     console.log("Nonce:", nonce.toString());
     
     // Fetch the domain separator directly from the contract
-    const domainSeparator = await usdcContract.DOMAIN_SEPARATOR();
-    console.log("Domain Separator:", domainSeparator);
+    //const domainSeparator = await usdcContract.DOMAIN_SEPARATOR();
+    //console.log("Domain Separator:", domainSeparator);
     
     // Construct the domain data using the domain separator
     const domain = {
